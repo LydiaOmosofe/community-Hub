@@ -1,4 +1,8 @@
 # SEGi Community Hub
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-Express-339933?logo=node.js&logoColor=white)
+![MySQL](https://img.shields.io/badge/Database-MySQL-4479A1?logo=mysql&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 A full-stack student community platform built for SEGi University, Kota Damansara. Community Hub helps students discover clubs and societies, stay updated on campus events, get instant answers from an AI assistant, and receive notifications from the clubs they follow.
 
