@@ -26,7 +26,7 @@ export default function ClubDirectory() {
       const d = Array.isArray(r.data) ? r.data : (r.data?.clubs || []);
       setClubs(d);
     }).catch(() => {}).finally(() => setLoading(false));
-fetch('http://localhost:5000/api/gallery/featured-club-page')
+fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/gallery/featured-club-page`)
   .then(r => r.json())
   .then(d => setGallery(d.photos || []))
   .catch(() => {});

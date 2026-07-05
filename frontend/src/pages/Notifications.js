@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API = axios.create({ baseURL: 'http://localhost:5000/api' });
+const API = axios.create({ baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api' });
 API.interceptors.request.use(c => { const t = localStorage.getItem('token'); if (t) c.headers.Authorization = `Bearer ${t}`; return c; });
 
 const TYPE_MAP = {
@@ -29,8 +29,8 @@ export default function Notifications() {
   useEffect(() => { load(); }, []);
 
   const markRead = async (id) => {
-    try { await API.patch(`/notifications/${id}/read`); load(); } catch {}
-  };
+  try { await API.patch(`/notifications/${id}`); load(); } catch {}
+};
 
   const fmt = (d) => d ? new Date(d).toLocaleString('en-MY', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
 
@@ -108,7 +108,7 @@ export default function Notifications() {
 <p style={{ fontSize: 13.5, color: '#111', lineHeight: 1.6 }}>{n.message}</p>
                       {!n.isRead && (
                         <div style={{ marginTop: 10 }}>
-                          <span onClick={() => markRead(n.notifiID || n.id)} style={{ fontSize: 12, color: '#0A6B8E', fontWeight: 500, cursor: 'pointer' }}>Mark as read →</span>
+                          <span onClick={() => markRead(n.notifID || n.id)} style={{ fontSize: 12, color: '#0A6B8E', fontWeight: 500, cursor: 'pointer' }}>Mark as read →</span>
                         </div>
                       )}
                     </div>

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getClub, getEventsByClub } from '../services/api';
 import axios from 'axios';
 
-const API = axios.create({ baseURL: 'http://localhost:5000/api' });
+const API = axios.create({ baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api' });
 
 const C = {
   teal: '#0A6B8E', tealDark: '#084D68', tealLight: '#EAF6FA',

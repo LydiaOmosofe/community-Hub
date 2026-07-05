@@ -33,7 +33,7 @@ export default function Home() {
       setEvents(d.filter(e => new Date(e.eventDate) > new Date()).slice(0, 4));
     }).catch(() => {});
 
-    fetch('http://localhost:5000/api/gallery/featured')
+    fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/gallery/featured`)
       .then(r => r.json())
       .then(d => setGallery(d.photos || []))
       .catch(() => {});
