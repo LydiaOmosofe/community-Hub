@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getClubs, getEvents } from '../services/api';
+import { useWindowSize } from '../hooks/useWindowSize';
 
 const SEGiLogo = () => (
-  <img src="/SEGILOGO.png" alt="SEGi University" style={{ width: 44, height: 44, objectFit: 'contain',  }}
+  <img src="/SEGILOGO.png" alt="SEGi University" style={{ width: 44, height: 44, objectFit: 'contain' }}
     onError={e => e.target.style.display='none'} />
 );
 
@@ -16,6 +17,7 @@ const SLIDES = [
 
 export default function Home() {
   const navigate = useNavigate();
+  const { isMobile, isTablet } = useWindowSize();
   const [slide, setSlide] = useState(0);
   const [clubs, setClubs] = useState([]);
   const [events, setEvents] = useState([]);
@@ -46,43 +48,41 @@ export default function Home() {
   return (
     <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", background: '#EAF6FA' }}>
 
-      {/* -- HERO SLIDER -- */}
-      <div style={{ position: 'relative', overflow: 'hidden', height: 440, background: s.bg, transition: 'background .65s' }}>
-        <img src={s.img} alt="" style={{ position: 'absolute', right: 0, top: 0, width: '50%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} onError={e => e.target.style.display = 'none'} />
+      {/* ── HERO SLIDER ── */}
+      <div style={{ position: 'relative', overflow: 'hidden', height: isMobile ? 320 : 440, background: s.bg, transition: 'background .65s' }}>
+        <img src={s.img} alt="" style={{ position: 'absolute', right: 0, top: 0, width: '50%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: isMobile ? 'none' : 'block' }} onError={e => e.target.style.display = 'none'} />
         <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to right, ${s.bg} 50%, transparent 100%)` }} />
-        <div style={{ position: 'relative', zIndex: 3, padding: '3rem 3.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', maxWidth: 560 }}>
-          <h1 style={{ color: '#fff', fontSize: '2.1rem', fontWeight: 500, lineHeight: 1.2, marginBottom: 10 }}>
+        <div style={{ position: 'relative', zIndex: 3, padding: isMobile ? '1.5rem' : '3rem 3.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', maxWidth: isMobile ? '100%' : 560 }}>
+          <h1 style={{ color: '#fff', fontSize: isMobile ? '1.5rem' : '2.1rem', fontWeight: 500, lineHeight: 1.2, marginBottom: 10 }}>
             {s.title}<br /><em style={{ fontStyle: 'normal', color: '#7dd3f0' }}>{s.em}</em>
           </h1>
-          <p style={{ color: 'rgba(255,255,255,.78)', fontSize: 14, lineHeight: 1.65, marginBottom: '1.75rem', maxWidth: 420 }}>{s.desc}</p>
-          <div style={{ display: 'flex', gap: 10 }}>
+          <p style={{ color: 'rgba(255,255,255,.78)', fontSize: isMobile ? 13 : 14, lineHeight: 1.65, marginBottom: '1.75rem', maxWidth: 420 }}>{s.desc}</p>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <button onClick={() => navigate(s.route1)} style={{ background: '#fff', color: '#0A6B8E', border: 'none', padding: '10px 22px', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>{s.btn1}</button>
             <button onClick={() => navigate(s.route2)} style={{ background: 'transparent', color: '#fff', border: '1.5px solid rgba(255,255,255,.5)', padding: '10px 22px', borderRadius: 8, fontSize: 13, cursor: 'pointer' }}>{s.btn2}</button>
           </div>
         </div>
-        {/* Arrows */}
         <button onClick={() => goSlide((slide - 1 + SLIDES.length) % SLIDES.length)} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.3)', color: '#fff', width: 40, height: 40, borderRadius: '50%', cursor: 'pointer', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>‹</button>
         <button onClick={() => goSlide((slide + 1) % SLIDES.length)} style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.3)', color: '#fff', width: 40, height: 40, borderRadius: '50%', cursor: 'pointer', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>›</button>
-        {/* Dots */}
-        <div style={{ position: 'absolute', bottom: 20, left: '3.5rem', display: 'flex', gap: 8, zIndex: 10 }}>
+        <div style={{ position: 'absolute', bottom: 20, left: isMobile ? '1.5rem' : '3.5rem', display: 'flex', gap: 8, zIndex: 10 }}>
           {SLIDES.map((_, i) => (
             <button key={i} onClick={() => goSlide(i)} style={{ width: i === slide ? 28 : 8, height: 8, borderRadius: i === slide ? 4 : '50%', background: i === slide ? '#fff' : 'rgba(255,255,255,.35)', border: 'none', cursor: 'pointer', padding: 0, transition: '.25s' }} />
           ))}
         </div>
       </div>
 
-      {/* -- STATS BAR -- */}
-      <div style={{ background: '#0A6B8E', display: 'flex' }}>
+      {/* ── STATS BAR ── */}
+      <div style={{ background: '#0A6B8E', display: 'flex', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
         {[['25,000+', 'Students across all campuses'], ['48', 'Active clubs & societies'], ['120+', 'Events this year'], ['85', 'Nationalities on campus'], ['QS 5★+', 'Ranked #701–710 globally']].map(([n, l]) => (
-          <div key={l} style={{ flex: 1, padding: '14px 0', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,.18)' }}>
-            <div style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 500 }}>{n}</div>
-            <div style={{ color: 'rgba(255,255,255,.62)', fontSize: 11, marginTop: 2 }}>{l}</div>
+          <div key={l} style={{ flex: isMobile ? '0 0 50%' : 1, padding: '14px 0', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,.18)' }}>
+            <div style={{ color: '#fff', fontSize: isMobile ? '1rem' : '1.2rem', fontWeight: 500 }}>{n}</div>
+            <div style={{ color: 'rgba(255,255,255,.62)', fontSize: 10, marginTop: 2 }}>{l}</div>
           </div>
         ))}
       </div>
 
-      {/* -- CAMPUS HIGHLIGHTS GALLERY -- */}
-      <div style={{ padding: '2.5rem 3rem', background: '#fff' }}>
+      {/* ── CAMPUS HIGHLIGHTS GALLERY ── */}
+      <div style={{ padding: isMobile ? '1.5rem 1rem' : '2.5rem 3rem', background: '#fff' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '.5rem' }}>
           <p style={{ fontSize: 17, fontWeight: 500, color: '#111' }}>Campus highlights</p>
           <span onClick={() => navigate('/clubs')} style={{ fontSize: 13, color: '#0A6B8E', cursor: 'pointer' }}>View all →</span>
@@ -91,39 +91,36 @@ export default function Home() {
         {gallery.length === 0 ? (
           <p style={{ color: '#6b7280', fontSize: 14, textAlign: 'center', padding: '2rem 0' }}>No highlights yet — check back soon!</p>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : isTablet ? 'repeat(3, 1fr)' : 'repeat(4, 1fr)', gap: 10 }}>
             {gallery.map((g) => (
-              <div key={g.galleryID} style={{
-                position: 'relative', borderRadius: 12, overflow: 'hidden',
-                cursor: 'pointer', aspectRatio: '1 / 1'
-              }}>
+              <div key={g.galleryID} style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', cursor: 'pointer', aspectRatio: '1 / 1' }}>
                 <img src={g.imageUrl} alt={g.caption || ''}
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform .35s' }}
                   onError={e => { e.target.parentElement.style.background = '#0A6B8E'; e.target.style.display = 'none'; }}
                   onMouseEnter={e => e.target.style.transform = 'scale(1.04)'}
                   onMouseLeave={e => e.target.style.transform = 'scale(1)'} />
-               <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,.55))', padding: '12px 14px 14px' }}>
-  {g.clubName && (
-    <div style={{ display: 'inline-block', background: 'rgba(10,107,142,0.85)', color: '#fff', fontSize: 10, padding: '3px 9px', borderRadius: 20, fontWeight: 600 }}>
-      {g.clubName}
-    </div>
-  )}
-</div>
+                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,.55))', padding: '12px 14px 14px' }}>
+                  {g.clubName && (
+                    <div style={{ display: 'inline-block', background: 'rgba(10,107,142,0.85)', color: '#fff', fontSize: 10, padding: '3px 9px', borderRadius: 20, fontWeight: 600 }}>
+                      {g.clubName}
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* -- FEATURED CLUBS -- */}
+      {/* ── FEATURED CLUBS ── */}
       {clubs.length > 0 && (
-        <div style={{ padding: '2.5rem 3rem', background: '#f0f9fc' }}>
+        <div style={{ padding: isMobile ? '1.5rem 1rem' : '2.5rem 3rem', background: '#f0f9fc' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
             <p style={{ fontSize: 17, fontWeight: 500, color: '#111' }}>Featured clubs</p>
             <span onClick={() => navigate('/clubs')} style={{ fontSize: 13, color: '#0A6B8E', cursor: 'pointer' }}>View all →</span>
           </div>
           <p style={{ fontSize: 13, color: '#6b7280', marginBottom: '1.5rem' }}>Join a club and find your people</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: 16 }}>
             {clubs.map(club => (
               <div key={club.clubID} onClick={() => navigate(`/clubs/${club.clubID}`)}
                 style={{ background: '#fff', borderRadius: 14, border: '0.5px solid #e5e7eb', overflow: 'hidden', cursor: 'pointer', transition: 'transform .2s, box-shadow .2s', padding: '18px' }}
@@ -147,15 +144,15 @@ export default function Home() {
         </div>
       )}
 
-      {/* -- UPCOMING EVENTS -- */}
+      {/* ── UPCOMING EVENTS ── */}
       {events.length > 0 && (
-        <div style={{ padding: '2.5rem 3rem', background: '#fff' }}>
+        <div style={{ padding: isMobile ? '1.5rem 1rem' : '2.5rem 3rem', background: '#fff' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
             <p style={{ fontSize: 17, fontWeight: 500, color: '#111' }}>Upcoming events</p>
             <span onClick={() => navigate('/events')} style={{ fontSize: 13, color: '#0A6B8E', cursor: 'pointer' }}>View all →</span>
           </div>
           <p style={{ fontSize: 13, color: '#6b7280', marginBottom: '1.5rem' }}>Don't miss out on what's happening</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
             {events.map(ev => (
               <div key={ev.eventID} onClick={() => navigate('/events')}
                 style={{ background: '#f0f9fc', borderRadius: 14, border: '0.5px solid #e5e7eb', overflow: 'hidden', cursor: 'pointer', transition: 'transform .2s' }}
@@ -179,24 +176,26 @@ export default function Home() {
         </div>
       )}
 
-      {/* -- AI BAND -- */}
-      <div style={{ background: '#0A6B8E', padding: '1.5rem 3rem', display: 'flex', alignItems: 'center', gap: '2rem' }}>
+      {/* ── AI BAND ── */}
+      <div style={{ background: '#0A6B8E', padding: isMobile ? '1.5rem 1rem' : '1.5rem 3rem', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: isMobile ? '1rem' : '2rem' }}>
         <div style={{ flexShrink: 0 }}>
           <div style={{ fontSize: 28, color: 'rgba(255,255,255,.9)' }}>🤖</div>
           <h2 style={{ color: '#fff', fontSize: 15, fontWeight: 500, marginTop: 4 }}>Need help? Ask our AI</h2>
           <p style={{ color: 'rgba(255,255,255,.7)', fontSize: 12 }}>Instant answers about clubs, events & campus life</p>
         </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', flex: 1 }}>
-          {['Which club should I join?', 'Events this week?', 'How do I register?', 'Upcoming tournaments?', 'What is SISS?'].map(q => (
-            <span key={q} onClick={() => navigate('/chatbot')} style={{ background: 'rgba(255,255,255,.14)', color: '#EAF6FA', border: '1px solid rgba(255,255,255,.22)', borderRadius: 16, padding: '6px 13px', fontSize: 12, cursor: 'pointer' }}>{q}</span>
-          ))}
-        </div>
-        <button onClick={() => navigate('/chatbot')} style={{ background: '#fff', color: '#0A6B8E', border: 'none', padding: '10px 24px', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer', flexShrink: 0 }}>Ask AI</button>
+        {!isMobile && (
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', flex: 1 }}>
+            {['Which club should I join?', 'Events this week?', 'How do I register?', 'Upcoming tournaments?', 'What is SISS?'].map(q => (
+              <span key={q} onClick={() => navigate('/chatbot')} style={{ background: 'rgba(255,255,255,.14)', color: '#EAF6FA', border: '1px solid rgba(255,255,255,.22)', borderRadius: 16, padding: '6px 13px', fontSize: 12, cursor: 'pointer' }}>{q}</span>
+            ))}
+          </div>
+        )}
+        <button onClick={() => navigate('/chatbot')} style={{ background: '#fff', color: '#0A6B8E', border: 'none', padding: '10px 24px', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer', flexShrink: 0, width: isMobile ? '100%' : 'auto' }}>Ask AI</button>
       </div>
 
-      {/* -- FOOTER -- */}
-      <footer style={{ background: '#084D68', padding: '3rem 3rem 1.5rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1fr 1fr 1fr', gap: '3rem', marginBottom: '2.5rem' }}>
+      {/* ── FOOTER ── */}
+      <footer style={{ background: '#084D68', padding: isMobile ? '2rem 1rem 1rem' : '3rem 3rem 1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr 1fr' : '1.8fr 1fr 1fr 1fr', gap: isMobile ? '1.5rem' : '3rem', marginBottom: '2.5rem' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
               <SEGiLogo />
@@ -224,7 +223,7 @@ export default function Home() {
           ))}
         </div>
         <hr style={{ border: 'none', borderTop: '0.5px solid rgba(255,255,255,.12)', marginBottom: '1.25rem' }} />
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'space-between', gap: isMobile ? 8 : 0 }}>
           <p style={{ color: 'rgba(255,255,255,.38)', fontSize: 12 }}>© 2026 SEGi University & Colleges — Community Hub · Built by Lydia Tolulope Omosofe</p>
           <div style={{ display: 'flex', gap: '1.25rem' }}>
             {['Privacy policy', 'Terms of use', 'Accessibility'].map(l => <span key={l} style={{ color: 'rgba(255,255,255,.38)', fontSize: 12, cursor: 'pointer' }}>{l}</span>)}

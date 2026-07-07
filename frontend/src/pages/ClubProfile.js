@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getClub, getEventsByClub } from '../services/api';
+import { useWindowSize } from '../hooks/useWindowSize';
 import axios from 'axios';
 
 const API = axios.create({ baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api' });
@@ -20,12 +21,13 @@ const catColors = {
 export default function ClubProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { isMobile } = useWindowSize();
   const [club, setClub] = useState(null);
   const [events, setEvents] = useState([]);
   const [gallery, setGallery] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [lightbox, setLightbox] = useState(null);
+  const [lightboxIndex, setLightboxIndex] = useState(null);
 
   const loadGallery = async () => {
     try {
@@ -52,9 +54,12 @@ export default function ClubProfile() {
   const fmtTime = (d) => d ? new Date(d).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
   const isUpcoming = (d) => d && new Date(d) > new Date();
 
-  if (loading) return <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Segoe UI', system-ui, sans-serif" }}><p style={{ color: C.gray500 }}>Loading club…</p></div>;
+  const goNext = (e) => { e.stopPropagation(); setLightboxIndex(i => (i + 1) % gallery.length); };
+  const goPrev = (e) => { e.stopPropagation(); setLightboxIndex(i => (i - 1 + gallery.length) % gallery.length); };
+
+  if (loading) return <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p style={{ color: C.gray500 }}>Loading club…</p></div>;
   if (error || !club) return (
-    <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+    <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
       <p style={{ color: '#e53e3e', marginBottom: 12 }}>{error || 'Club not found.'}</p>
       <button onClick={() => navigate('/clubs')} style={{ background: C.teal, color: '#fff', border: 'none', borderRadius: 8, padding: '10px 20px', cursor: 'pointer', fontWeight: 600 }}>← Back to Clubs</button>
     </div>
@@ -65,11 +70,12 @@ export default function ClubProfile() {
   const pastEvents = events.filter(e => !isUpcoming(e.eventDate)).sort((a,b) => new Date(b.eventDate) - new Date(a.eventDate));
   const hasBanner = !!club.bannerUrl;
   const hasProfilePic = !!club.profilePicUrl;
+  const lightboxPhoto = lightboxIndex !== null ? gallery[lightboxIndex] : null;
 
   return (
     <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", background: '#f0f9fc', minHeight: '100vh' }}>
 
-      {/* ── HEADER — works with or without banner ── */}
+      {/* ── HEADER ── */}
       <div style={{
         position: 'relative', overflow: 'hidden',
         background: hasBanner ? 'transparent' : `linear-gradient(135deg, ${C.tealDark}, ${C.teal})`,
@@ -83,23 +89,20 @@ export default function ClubProfile() {
         )}
 
         <button onClick={() => navigate('/clubs')} style={{
-  position: 'absolute', top: 20, left: 20, zIndex: 10,
-  display: 'flex', alignItems: 'center', gap: 6,
-  background: 'rgba(255,255,255,.15)', backdropFilter: 'blur(8px)',
-  color: '#fff', border: '1px solid rgba(255,255,255,.3)',
-  borderRadius: 20, padding: '8px 16px', fontSize: 13,
-  fontWeight: 500, cursor: 'pointer', transition: '.15s'
-}}
-  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,.25)'}
-  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,.15)'}
->
-  ← Back to clubs
-</button>
+          position: 'absolute', top: 20, left: 20, zIndex: 10,
+          display: 'flex', alignItems: 'center', gap: 6,
+          background: 'rgba(255,255,255,.15)', backdropFilter: 'blur(8px)',
+          color: '#fff', border: '1px solid rgba(255,255,255,.3)',
+          borderRadius: 20, padding: '8px 16px', fontSize: 13,
+          fontWeight: 500, cursor: 'pointer', transition: '.15s'
+        }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,.25)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,.15)'}
+        >← Back to clubs</button>
 
-        <div style={{ position: 'relative', zIndex: 5, padding: hasBanner ? '0 2rem 1.5rem' : '2rem', display: 'flex', alignItems: 'flex-end', gap: 18, marginTop: hasBanner ? 'auto' : 0, paddingTop: hasBanner ? 60 : '2rem' }}>
-          {/* Profile pic — only show if exists */}
+        <div style={{ position: 'relative', zIndex: 5, padding: hasBanner ? '0 1.5rem 1.5rem' : '1.5rem', display: 'flex', alignItems: 'flex-end', gap: 18, paddingTop: hasBanner ? 60 : '2rem' }}>
           {hasProfilePic && (
-            <div style={{ width: 72, height: 72, borderRadius: '50%', border: `3px solid #fff`, overflow: 'hidden', background: C.tealLight, flexShrink: 0 }}>
+            <div style={{ width: isMobile ? 56 : 72, height: isMobile ? 56 : 72, borderRadius: '50%', border: `3px solid #fff`, overflow: 'hidden', background: C.tealLight, flexShrink: 0 }}>
               <img src={club.profilePicUrl} alt="logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => e.target.style.display = 'none'} />
             </div>
           )}
@@ -107,24 +110,65 @@ export default function ClubProfile() {
             {club.category && (
               <span style={{ display: 'inline-block', marginBottom: 6, background: catStyle.bg, color: catStyle.text, borderRadius: 6, padding: '3px 10px', fontSize: 12, fontWeight: 700 }}>{club.category}</span>
             )}
-            <h1 style={{ margin: 0, fontSize: 'clamp(1.3rem, 3vw, 1.9rem)', fontWeight: 700, color: '#fff', lineHeight: 1.2 }}>{club.clubName}</h1>
+            <h1 style={{ margin: 0, fontSize: isMobile ? '1.3rem' : 'clamp(1.3rem, 3vw, 1.9rem)', fontWeight: 700, color: '#fff', lineHeight: 1.2 }}>{club.clubName}</h1>
           </div>
         </div>
       </div>
 
       {/* ── CONTENT ── */}
-      <div style={{ maxWidth: 960, margin: '0 auto', padding: '2rem 1.5rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(0, 280px)', gap: 24 }}>
+      <div style={{ maxWidth: 960, margin: '0 auto', padding: isMobile ? '1rem' : '2rem 1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr minmax(0, 280px)', gap: 24 }}>
 
           {/* LEFT */}
           <div>
-            {/* About */}
             <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${C.gray200}`, padding: '1.5rem', marginBottom: 20 }}>
               <h2 style={{ margin: '0 0 .75rem', fontSize: 18, fontWeight: 700, color: C.tealDark }}>About Us</h2>
               <p style={{ margin: 0, fontSize: 15, color: C.gray700, lineHeight: 1.7 }}>{club.description || 'No description provided yet.'}</p>
             </div>
 
-            {/* Upcoming Events */}
+            {/* Club Info on mobile — show inline instead of sidebar */}
+            {isMobile && (
+              <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${C.gray200}`, padding: '1.25rem', marginBottom: 20 }}>
+                <h3 style={{ margin: '0 0 1rem', fontSize: 15, fontWeight: 700, color: C.tealDark }}>Club Info</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {club.category && (
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      <span>📂</span>
+                      <div>
+                        <p style={{ margin: 0, fontSize: 11, color: C.gray500, fontWeight: 600, textTransform: 'uppercase' }}>Category</p>
+                        <p style={{ margin: '2px 0 0', fontSize: 14, fontWeight: 600, color: C.tealDark }}>{club.category}</p>
+                      </div>
+                    </div>
+                  )}
+                  {club.membershipLink && (
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      <span>🔗</span>
+                      <div>
+                        <p style={{ margin: 0, fontSize: 11, color: C.gray500, fontWeight: 600, textTransform: 'uppercase' }}>Join</p>
+                        <a href={club.membershipLink} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, fontWeight: 600, color: C.teal, textDecoration: 'none' }}>Apply here →</a>
+                      </div>
+                    </div>
+                  )}
+                  {club.contactEmail && (
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      <span>📱</span>
+                      <div>
+                        <p style={{ margin: 0, fontSize: 11, color: C.gray500, fontWeight: 600, textTransform: 'uppercase' }}>Contact</p>
+                        <p style={{ margin: '2px 0 0', fontSize: 14, fontWeight: 600, color: C.teal }}>{club.contactEmail}</p>
+                      </div>
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <span>🗓️</span>
+                    <div>
+                      <p style={{ margin: 0, fontSize: 11, color: C.gray500, fontWeight: 600, textTransform: 'uppercase' }}>Events</p>
+                      <p style={{ margin: '2px 0 0', fontSize: 14, fontWeight: 600, color: C.tealDark }}>{events.length} total · {upcomingEvents.length} upcoming</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {upcomingEvents.length > 0 && (
               <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${C.gray200}`, padding: '1.5rem', marginBottom: 20 }}>
                 <h2 style={{ margin: '0 0 1rem', fontSize: 18, fontWeight: 700, color: C.tealDark }}>Upcoming Events</h2>
@@ -148,7 +192,6 @@ export default function ClubProfile() {
               </div>
             )}
 
-            {/* Past Events */}
             {pastEvents.length > 0 && (
               <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${C.gray200}`, padding: '1.5rem' }}>
                 <h2 style={{ margin: '0 0 1rem', fontSize: 18, fontWeight: 700, color: C.tealDark }}>Past Events</h2>
@@ -176,62 +219,60 @@ export default function ClubProfile() {
             )}
           </div>
 
-          {/* RIGHT SIDEBAR */}
-          <div>
-            <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${C.gray200}`, padding: '1.25rem', marginBottom: 16, position: 'sticky', top: 80 }}>
-              <h3 style={{ margin: '0 0 1rem', fontSize: 15, fontWeight: 700, color: C.tealDark }}>Club Info</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {club.category && (
-                  <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                    <span style={{ fontSize: 16 }}>📂</span>
-                    <div>
-                      <p style={{ margin: 0, fontSize: 11, color: C.gray500, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.05em' }}>Category</p>
-                      <p style={{ margin: '2px 0 0', fontSize: 14, fontWeight: 600, color: C.tealDark }}>{club.category}</p>
+          {/* RIGHT SIDEBAR — desktop only */}
+          {!isMobile && (
+            <div>
+              <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${C.gray200}`, padding: '1.25rem', marginBottom: 16, position: 'sticky', top: 80 }}>
+                <h3 style={{ margin: '0 0 1rem', fontSize: 15, fontWeight: 700, color: C.tealDark }}>Club Info</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {club.category && (
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                      <span style={{ fontSize: 16 }}>📂</span>
+                      <div>
+                        <p style={{ margin: 0, fontSize: 11, color: C.gray500, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.05em' }}>Category</p>
+                        <p style={{ margin: '2px 0 0', fontSize: 14, fontWeight: 600, color: C.tealDark }}>{club.category}</p>
+                      </div>
                     </div>
-                  </div>
-                )}
-                
-                {club.membershipLink && (
-  <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-    <span style={{ fontSize: 16 }}>🔗</span>
-    <div>
-      <p style={{ margin: 0, fontSize: 11, color: C.gray500, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.05em' }}>Join</p>
-      <a href={club.membershipLink} target="_blank" rel="noopener noreferrer"
-        style={{ margin: '2px 0 0', fontSize: 13, fontWeight: 600, color: C.teal, display: 'block', textDecoration: 'none' }}>
-        Apply here →
-      </a>
-    </div>
-  </div>
-)}
-                {club.contactEmail && (
-                  <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                    <span style={{ fontSize: 16 }}>📱</span>
-                    <div>
-                      <p style={{ margin: 0, fontSize: 11, color: C.gray500, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.05em' }}>Contact</p>
-                      <p style={{ margin: '2px 0 0', fontSize: 14, fontWeight: 600, color: C.teal }}>{club.contactEmail}</p>
+                  )}
+                  {club.membershipLink && (
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                      <span style={{ fontSize: 16 }}>🔗</span>
+                      <div>
+                        <p style={{ margin: 0, fontSize: 11, color: C.gray500, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.05em' }}>Join</p>
+                        <a href={club.membershipLink} target="_blank" rel="noopener noreferrer" style={{ margin: '2px 0 0', fontSize: 13, fontWeight: 600, color: C.teal, display: 'block', textDecoration: 'none' }}>Apply here →</a>
+                      </div>
                     </div>
-                  </div>
-                )}
-                <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: 16 }}>🗓️</span>
-                  <div>
-                    <p style={{ margin: 0, fontSize: 11, color: C.gray500, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.05em' }}>Events</p>
-                    <p style={{ margin: '2px 0 0', fontSize: 14, fontWeight: 600, color: C.tealDark }}>{events.length} total · {upcomingEvents.length} upcoming</p>
+                  )}
+                  {club.contactEmail && (
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                      <span style={{ fontSize: 16 }}>📱</span>
+                      <div>
+                        <p style={{ margin: 0, fontSize: 11, color: C.gray500, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.05em' }}>Contact</p>
+                        <p style={{ margin: '2px 0 0', fontSize: 14, fontWeight: 600, color: C.teal }}>{club.contactEmail}</p>
+                      </div>
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: 16 }}>🗓️</span>
+                    <div>
+                      <p style={{ margin: 0, fontSize: 11, color: C.gray500, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.05em' }}>Events</p>
+                      <p style={{ margin: '2px 0 0', fontSize: 14, fontWeight: 600, color: C.tealDark }}>{events.length} total · {upcomingEvents.length} upcoming</p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* ── GALLERY ── */}
         {gallery.length > 0 && (
-          <div style={{ maxWidth: 900, margin: '1.5rem auto 0', padding: '0 1.5rem 3rem' }}>
+          <div style={{ margin: '1.5rem 0 0', padding: '0 0 3rem' }}>
             <div style={{ background: C.white, borderRadius: 14, border: `1px solid ${C.gray200}`, padding: '1.5rem' }}>
-              <h2 style={{ margin: '0 0 1rem', fontSize: 18, fontWeight: 700, color: C.tealDark }}>📸 Club Gallery</h2>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10 }}>
-                {gallery.map(photo => (
-                  <div key={photo.galleryID} onClick={() => setLightbox(photo)}
+              <h2 style={{ margin: '0 0 1rem', fontSize: 18, fontWeight: 700, color: C.tealDark }}> Club Gallery</h2>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10 }}>
+                {gallery.map((photo, index) => (
+                  <div key={photo.galleryID} onClick={() => setLightboxIndex(index)}
                     style={{ borderRadius: 10, overflow: 'hidden', cursor: 'pointer', position: 'relative', paddingBottom: '75%', background: C.gray100 }}>
                     <img src={photo.imageUrl} alt={photo.caption || ''}
                       style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', transition: 'transform .3s' }}
@@ -246,29 +287,48 @@ export default function ClubProfile() {
         )}
       </div>
 
-      {/* ── LIGHTBOX ── */}
-      {lightbox && (
-        <div onClick={() => setLightbox(null)} style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)',
+      {/* ── LIGHTBOX with next/prev ── */}
+      {lightboxPhoto && (
+        <div onClick={() => setLightboxIndex(null)} style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 2000, cursor: 'zoom-out', padding: '2rem'
+          zIndex: 2000, padding: '1rem'
         }}>
+          {/* Prev button */}
+          <button onClick={goPrev} style={{
+            position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)',
+            background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.3)',
+            color: '#fff', width: 44, height: 44, borderRadius: '50%',
+            cursor: 'pointer', fontSize: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10
+          }}>‹</button>
+
           <div onClick={e => e.stopPropagation()} style={{ position: 'relative', maxWidth: 700, width: '100%' }}>
-            <img src={lightbox.imageUrl} alt={lightbox.caption || ''}
+            <img src={lightboxPhoto.imageUrl} alt={lightboxPhoto.caption || ''}
               style={{ width: '100%', borderRadius: 12, display: 'block', maxHeight: '80vh', objectFit: 'contain' }} />
-            {lightbox.caption && (
-              <p style={{ color: '#fff', textAlign: 'center', marginTop: 12, fontSize: 14, opacity: .85 }}>{lightbox.caption}</p>
+            {lightboxPhoto.caption && (
+              <p style={{ color: '#fff', textAlign: 'center', marginTop: 12, fontSize: 14, opacity: .85 }}>{lightboxPhoto.caption}</p>
             )}
-            <button onClick={() => setLightbox(null)} style={{
+            {/* Counter */}
+            <p style={{ color: 'rgba(255,255,255,.5)', textAlign: 'center', fontSize: 12, marginTop: 4 }}>
+              {lightboxIndex + 1} / {gallery.length}
+            </p>
+            <button onClick={() => setLightboxIndex(null)} style={{
               position: 'absolute', top: -14, right: -14,
               background: '#fff', border: 'none', borderRadius: '50%',
               width: 32, height: 32, cursor: 'pointer', fontSize: 18, fontWeight: 700,
               display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}>×</button>
           </div>
+
+          {/* Next button */}
+          <button onClick={goNext} style={{
+            position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)',
+            background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.3)',
+            color: '#fff', width: 44, height: 44, borderRadius: '50%',
+            cursor: 'pointer', fontSize: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10
+          }}>›</button>
         </div>
       )}
     </div>
   );
 }
-
