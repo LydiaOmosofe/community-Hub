@@ -31,10 +31,13 @@ export default function Register() {
     color: textPrimary, transition: 'border .15s, background .3s'
   };
 
-  const submit = async e => {
-    e.preventDefault();
-    if (form.password !== form.confirmPassword) { setError('Passwords do not match.'); return; }
-    if (form.password.length < 6) { setError('Password must be at least 6 characters.'); return; }
+const submit = async e => {
+  e.preventDefault();
+  if (!form.name.trim() || !form.email.trim() || !form.password || !form.confirmPassword) {
+    setError('Please fill in all fields.'); return;
+  }
+  if (form.password !== form.confirmPassword) { setError('Passwords do not match.'); return; }
+  if (form.password.length < 6) { setError('Password must be at least 6 characters.'); return; }
     setLoading(true); setError('');
     try {
       await registerUser({ name: form.name, email: form.email, password: form.password });
@@ -66,7 +69,7 @@ export default function Register() {
       </div>
 
       {/* Right panel */}
-      <div style={{ width: isMobile ? '100%' : '100%', maxWidth: isMobile ? '100%' : 480, background: cardBg, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: isMobile ? '1.5rem' : '3rem 2.5rem', overflowY: 'auto', transition: 'background .3s' }}>
+    <div style={{ width: isMobile ? '100%' : '100%', maxWidth: isMobile ? '100%' : 480, background: cardBg, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: isMobile ? '1.5rem' : '3rem 2.5rem', overflowY: 'auto', transition: 'background .3s', boxSizing: 'border-box' }}>
         <h2 style={{ fontSize: isMobile ? 19 : 22, fontWeight: 800, color: textPrimary, margin: '0 0 4px' }}>Create account</h2>
         <p style={{ fontSize: 13, color: textSecondary, marginBottom: '1.5rem' }}>
           Already have an account? <Link to="/login" style={{ color: '#0A6B8E', fontWeight: 700, textDecoration: 'none' }}>Sign in</Link>
@@ -74,7 +77,7 @@ export default function Register() {
 
         {error && <div style={{ background: '#fee2e2', color: '#dc2626', padding: '10px 14px', borderRadius: 8, fontSize: 13, marginBottom: 16, fontWeight: 500 }}>{error}</div>}
 
-        <form onSubmit={submit}>
+       <form onSubmit={submit} noValidate>
           {[
             { label: 'Full name', key: 'name', type: 'text', placeholder: 'e.g. Lydia Omosofe' },
             { label: 'Email address', key: 'email', type: 'email', placeholder: 'you@segi.edu.my' },

@@ -126,7 +126,7 @@ function Navbar() {
                     fontWeight: isActive('/admin') ? 800 : 600,
                     background: isActive('/admin') ? 'rgba(255,255,255,.22)' : hovered === 'admin' ? 'rgba(255,255,255,.12)' : 'transparent',
                     opacity: isActive('/admin') ? 1 : 0.88
-                  }}>⚙️ Admin</Link>
+                  }}> Admin</Link>
               )}
             </div>
             <div style={{ display: 'flex', gap: 8, flexShrink: 0, marginLeft: '1rem', alignItems: 'center' }}>
@@ -188,7 +188,7 @@ function Navbar() {
               padding: '14px 16px', borderRadius: 10, marginBottom: 4,
               background: isActive('/admin') ? 'rgba(255,255,255,.18)' : 'transparent',
               display: 'block'
-            }}>⚙️ Admin</Link>
+            }}> Admin</Link>
           )}
           <div style={{ borderTop: '1px solid rgba(255,255,255,.15)', marginTop: 8, paddingTop: 12 }}>
             {token ? (

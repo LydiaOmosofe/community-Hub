@@ -32,14 +32,12 @@ export default function Notifications() {
   const textSecondary = darkMode ? '#94a3b8' : '#6b7280';
   const sidebarBg = darkMode ? '#1e293b' : '#fff';
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const r = await API.get('/notifications');
-      setNotifications(Array.isArray(r.data) ? r.data : (r.data?.notifications || []));
-    } catch { setNotifications([]); }
-    finally { setLoading(false); }
-  }, []);
+const load = useCallback(async () => {
+  setLoading(true);
+  try { const r = await API.get('/notifications/all'); setNotifications(Array.isArray(r.data) ? r.data : (r.data?.notifications || [])); }
+  catch { console.error('Could not load notifications.'); }
+  finally { setLoading(false); }
+}, []);
 
   useEffect(() => { load(); }, [load]);
 
