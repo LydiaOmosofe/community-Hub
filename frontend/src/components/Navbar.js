@@ -5,7 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 
 const SEGiLogo = () => (
   <img src="/SEGILOGO.png" alt="SEGi University"
-    style={{ width: 38, height: 38, objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
+    style={{ width: 38, height: 38, objectFit: 'contain' }}
     onError={e => { e.target.style.display = 'none'; }} />
 );
 

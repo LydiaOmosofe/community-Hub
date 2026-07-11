@@ -67,8 +67,19 @@ export default function Home() {
 
       {/* ── HERO SLIDER ── */}
       <div style={{ position: 'relative', overflow: 'hidden', height: isMobile ? 320 : 440, background: s.bg, transition: 'background .65s' }}>
-        <img src={s.img} alt="" style={{ position: 'absolute', right: 0, top: 0, width: '50%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: isMobile ? 'none' : 'block' }} onError={e => e.target.style.display = 'none'} />
-        <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to right, ${s.bg} 50%, transparent 100%)` }} />
+        <img src={s.img} alt="" style={{
+          position: 'absolute', inset: 0,
+          width: isMobile ? '100%' : '50%',
+          right: 0, left: isMobile ? 0 : 'auto',
+          height: '100%', objectFit: 'cover', objectPosition: 'center',
+          display: 'block'
+        }} onError={e => e.target.style.display = 'none'} />
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: isMobile
+            ? `linear-gradient(180deg, ${s.bg}b3 0%, ${s.bg}e6 55%, ${s.bg} 100%)`
+            : `linear-gradient(to right, ${s.bg} 50%, transparent 100%)`
+        }} />
         <div style={{ position: 'relative', zIndex: 3, padding: isMobile ? '1.5rem' : '3rem 3.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', maxWidth: isMobile ? '100%' : 560 }}>
           <h1 style={{ color: '#fff', fontSize: isMobile ? '1.5rem' : '2.1rem', fontWeight: 800, lineHeight: 1.2, marginBottom: 10 }}>
             {s.title}<br /><em style={{ fontStyle: 'normal', color: '#7dd3f0' }}>{s.em}</em>
@@ -89,11 +100,11 @@ export default function Home() {
       </div>
 
       {/* ── STATS BAR ── */}
-      <div style={{ background: '#0A6B8E', display: 'flex', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
+      <div style={{ background: '#0A6B8E', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)' }}>
         {[['25,000+', 'Students across all campuses'], ['48', 'Active clubs & societies'], ['120+', 'Events this year'], ['85', 'Nationalities on campus'], ['QS 5★+', 'Ranked #701–710 globally']].map(([n, l]) => (
-          <div key={l} style={{ flex: isMobile ? '0 0 50%' : 1, padding: '14px 0', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,.18)' }}>
-            <div style={{ color: '#fff', fontSize: isMobile ? '1rem' : '1.2rem', fontWeight: 700 }}>{n}</div>
-            <div style={{ color: 'rgba(255,255,255,.62)', fontSize: 10, marginTop: 2 }}>{l}</div>
+          <div key={l} style={{ padding: isMobile ? '10px 2px' : '14px 8px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,.18)', boxSizing: 'border-box' }}>
+            <div style={{ color: '#fff', fontSize: isMobile ? '0.7rem' : '1.2rem', fontWeight: 700 }}>{n}</div>
+            <div style={{ color: 'rgba(255,255,255,.62)', fontSize: isMobile ? 7.5 : 10, marginTop: 2, lineHeight: 1.25 }}>{l}</div>
           </div>
         ))}
       </div>

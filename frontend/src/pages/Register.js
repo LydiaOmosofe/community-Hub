@@ -3,10 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { registerUser } from '../services/api';
 import { Eye, EyeOff } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { useWindowSize } from '../hooks/useWindowSize';
 
 export default function Register() {
   const navigate = useNavigate();
   const { darkMode } = useTheme();
+  const { isMobile } = useWindowSize();
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -43,29 +45,29 @@ export default function Register() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', fontFamily: "'Segoe UI', system-ui, sans-serif", transition: 'background .3s' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: isMobile ? 'column' : 'row', fontFamily: "'Segoe UI', system-ui, sans-serif", transition: 'background .3s' }}>
 
       {/* Left panel */}
-      <div style={{ flex: 1, background: 'linear-gradient(135deg,#084D68 0%,#0A6B8E 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '3rem', minWidth: 0 }}>
-        <div style={{ height: 44 }} />
-        <h1 style={{ color: '#fff', fontSize: 'clamp(1.5rem,3vw,2.5rem)', fontWeight: 800, lineHeight: 1.2, marginBottom: '1rem' }}>
+      <div style={{ flex: isMobile ? 'none' : 1, background: 'linear-gradient(135deg,#084D68 0%,#0A6B8E 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: isMobile ? '2rem 1.5rem' : '3rem', minWidth: 0 }}>
+        {!isMobile && <div style={{ height: 44 }} />}
+        <h1 style={{ color: '#fff', fontSize: isMobile ? '1.4rem' : 'clamp(1.5rem,3vw,2.5rem)', fontWeight: 800, lineHeight: 1.2, marginBottom: isMobile ? '0.5rem' : '1rem' }}>
           Join the<br /><span style={{ color: '#7dd3f0' }}>SEGi Community</span>
         </h1>
-        <p style={{ color: 'rgba(255,255,255,.75)', fontSize: 14, lineHeight: 1.7, marginBottom: '2rem', maxWidth: 340 }}>
+        <p style={{ color: 'rgba(255,255,255,.75)', fontSize: isMobile ? 12.5 : 14, lineHeight: 1.6, marginBottom: isMobile ? 0 : '2rem', maxWidth: 340 }}>
           Create your account and start discovering clubs, events, and everything campus life has to offer.
         </p>
-        {['Discover and join campus clubs', 'Stay updated on upcoming events', 'Get AI-powered campus assistance', 'Receive notifications from clubs'].map(item => (
+        {!isMobile && ['Discover and join campus clubs', 'Stay updated on upcoming events', 'Get AI-powered campus assistance', 'Receive notifications from clubs'].map(item => (
           <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
             <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'rgba(255,255,255,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#fff', flexShrink: 0 }}>✓</div>
             <span style={{ color: 'rgba(255,255,255,.85)', fontSize: 14, fontWeight: 500 }}>{item}</span>
           </div>
         ))}
-        <p style={{ color: 'rgba(255,255,255,.35)', fontSize: 11, marginTop: 'auto', paddingTop: '2rem' }}>© 2026 SEGi University · Kota Damansara</p>
+        {!isMobile && <p style={{ color: 'rgba(255,255,255,.35)', fontSize: 11, marginTop: 'auto', paddingTop: '2rem' }}>© 2026 SEGi University · Kota Damansara</p>}
       </div>
 
       {/* Right panel */}
-      <div style={{ width: '100%', maxWidth: 480, background: cardBg, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '3rem 2.5rem', overflowY: 'auto', transition: 'background .3s' }}>
-        <h2 style={{ fontSize: 22, fontWeight: 800, color: textPrimary, margin: '0 0 4px' }}>Create account</h2>
+      <div style={{ width: isMobile ? '100%' : '100%', maxWidth: isMobile ? '100%' : 480, background: cardBg, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: isMobile ? '1.5rem' : '3rem 2.5rem', overflowY: 'auto', transition: 'background .3s' }}>
+        <h2 style={{ fontSize: isMobile ? 19 : 22, fontWeight: 800, color: textPrimary, margin: '0 0 4px' }}>Create account</h2>
         <p style={{ fontSize: 13, color: textSecondary, marginBottom: '1.5rem' }}>
           Already have an account? <Link to="/login" style={{ color: '#0A6B8E', fontWeight: 700, textDecoration: 'none' }}>Sign in</Link>
         </p>
