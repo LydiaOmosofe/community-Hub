@@ -1,116 +1,162 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { useWindowSize } from '../hooks/useWindowSize';
+import { useTheme } from '../context/ThemeContext';
 
 const API = axios.create({ baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api' });
-API.interceptors.request.use(c => { const t = localStorage.getItem('token'); if (t) c.headers.Authorization = `Bearer ${t}`; return c; });
+API.interceptors.request.use(config => {
+  const token = localStorage.getItem('token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
-const TYPE_MAP = {
-  info:    { bg: '#EAF6FA', color: '#084D68', tag: 'Info',    icon: 'ℹ️' },
-  warning: { bg: '#FAEEDA', color: '#633806', tag: 'Warning', icon: '⚠️' },
-  success: { bg: '#EAF3DE', color: '#3B6D11', tag: 'Success', icon: '✅' },
-  danger:  { bg: '#FAECE7', color: '#712B13', tag: 'Urgent',  icon: '🚨' },
+const TYPE_CONFIG = {
+  info:    { color: '#3b82f6', bg: '#eff6ff', border: '#bfdbfe', icon: 'ℹ️', label: 'Info' },
+  warning: { color: '#f59e0b', bg: '#fffbeb', border: '#fde68a', icon: '⚠️', label: 'Warning' },
+  success: { color: '#10b981', bg: '#f0fdf4', border: '#bbf7d0', icon: '✅', label: 'Success' },
+  danger:  { color: '#ef4444', bg: '#fef2f2', border: '#fecaca', icon: '🚨', label: 'Urgent' },
 };
 
 export default function Notifications() {
-  const [notifs, setNotifs] = useState([]);
+  const { isMobile } = useWindowSize();
+  const { darkMode } = useTheme();
+  const [notifications, setNotifications] = useState([]);
+  const [filter, setFilter] = useState('All');
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all');
 
-  const load = async () => {
+  // dark mode colors
+  const bg = darkMode ? '#0f172a' : '#f0f9fc';
+  const cardBg = darkMode ? '#1e293b' : '#fff';
+  const cardBorder = darkMode ? '#334155' : '#e5e7eb';
+  const textPrimary = darkMode ? '#f1f5f9' : '#111';
+  const textSecondary = darkMode ? '#94a3b8' : '#6b7280';
+  const sidebarBg = darkMode ? '#1e293b' : '#fff';
+
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const r = await API.get('/notifications');
-      const d = Array.isArray(r.data) ? r.data : (r.data?.notifications || []);
-      setNotifs(d);
-    } catch {}
+      setNotifications(Array.isArray(r.data) ? r.data : (r.data?.notifications || []));
+    } catch { setNotifications([]); }
     finally { setLoading(false); }
-  };
+  }, []);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [load]);
 
   const markRead = async (id) => {
-  try { await API.patch(`/notifications/${id}`); load(); } catch {}
-};
+    try { await API.patch(`/notifications/${id}`); load(); } catch {}
+  };
 
-  const fmt = (d) => d ? new Date(d).toLocaleString('en-MY', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+  const markAllRead = async () => {
+    try { await API.patch('/notifications/mark-all-read'); load(); } catch {}
+  };
 
-  const filtered = filter === 'all' ? notifs : filter === 'unread' ? notifs.filter(n => !n.isRead) : notifs.filter(n => n.type === filter);
+  const fmt = (d) => d ? new Date(d).toLocaleString('en-MY', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 
-  const unreadCount = notifs.filter(n => !n.isRead).length;
+  const filters = ['All', 'Unread', 'Info', 'Warning', 'Success', 'Urgent'];
+  const filtered = notifications.filter(n => {
+    if (filter === 'All') return true;
+    if (filter === 'Unread') return !n.isRead;
+    if (filter === 'Info') return n.type === 'info';
+    if (filter === 'Warning') return n.type === 'warning';
+    if (filter === 'Success') return n.type === 'success';
+    if (filter === 'Urgent') return n.type === 'danger';
+    return true;
+  });
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const typeCounts = {
+    All: notifications.length,
+    Unread: unreadCount,
+    Info: notifications.filter(n => n.type === 'info').length,
+    Warning: notifications.filter(n => n.type === 'warning').length,
+    Success: notifications.filter(n => n.type === 'success').length,
+    Urgent: notifications.filter(n => n.type === 'danger').length,
+  };
 
   return (
-    <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", background: '#f0f9fc', minHeight: '100vh' }}>
+    <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", background: bg, minHeight: '100vh', transition: 'background .3s' }}>
 
-      {/* Hero */}
-      <div style={{ background: 'linear-gradient(135deg,#084D68 0%,#0A6B8E 100%)', padding: '2.5rem 3rem' }}>
-        <h1 style={{ color: '#fff', fontSize: '2rem', fontWeight: 500, marginBottom: 6 }}>Notifications</h1>
-        <p style={{ color: 'rgba(255,255,255,.72)', fontSize: 14 }}>Stay updated with club activities and important notices</p>
+      {/* ── HERO ── */}
+      <div style={{ background: 'linear-gradient(135deg,#084D68 0%,#0A6B8E 100%)', padding: isMobile ? '1.5rem 1rem' : '2.5rem 3rem' }}>
+        <h1 style={{ color: '#fff', fontSize: isMobile ? '1.5rem' : '2rem', fontWeight: 800, marginBottom: 6 }}>Notifications</h1>
+        <p style={{ color: 'rgba(255,255,255,.72)', fontSize: 14, fontWeight: 500 }}>Stay updated with club activities and important notices</p>
+        {unreadCount > 0 && (
+          <button onClick={markAllRead} style={{ marginTop: 12, background: 'rgba(255,255,255,.2)', border: '1px solid rgba(255,255,255,.4)', color: '#fff', padding: '7px 16px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+            ✓ Mark all as read ({unreadCount})
+          </button>
+        )}
       </div>
 
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '2rem 1.5rem', display: 'grid', gridTemplateColumns: '1fr 240px', gap: '2rem' }}>
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: isMobile ? '1rem' : '2rem 1.5rem', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 220px', gap: 24 }}>
 
-        {/* Main */}
+        {/* LEFT — notifications list */}
         <div>
-          {/* Filter tabs */}
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-            {[['all', 'All'], ['unread', 'Unread'], ['info', 'Info'], ['warning', 'Warning'], ['success', 'Success'], ['danger', 'Urgent']].map(([val, label]) => (
-              <span key={val} onClick={() => setFilter(val)} style={{
-                padding: '7px 16px', borderRadius: 20, fontSize: 12, cursor: 'pointer',
-                fontWeight: 500, transition: '.15s',
-                background: filter === val ? '#0A6B8E' : '#fff',
-                color: filter === val ? '#fff' : '#6b7280',
-                border: filter === val ? '0.5px solid #0A6B8E' : '0.5px solid #e5e7eb'
-              }}>{label}</span>
+          {/* Filter pills */}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+            {filters.map(f => (
+              <span key={f} onClick={() => setFilter(f)} style={{
+                padding: '7px 14px', borderRadius: 20, fontSize: 12, cursor: 'pointer',
+                fontWeight: filter === f ? 800 : 600,
+                background: filter === f ? '#0A6B8E' : cardBg,
+                color: filter === f ? '#fff' : textSecondary,
+                border: `1.5px solid ${filter === f ? '#0A6B8E' : cardBorder}`,
+                transition: '.15s'
+              }}>{f}</span>
             ))}
           </div>
 
-          {/* Pinned / unread highlight */}
-          {unreadCount > 0 && filter === 'all' && (
-            <div style={{ background: '#FFF8E7', border: '1.5px solid #EF9F27', borderRadius: 14, padding: '16px 20px', marginBottom: '1.5rem', display: 'flex', alignItems: 'flex-start', gap: 14 }}>
-              <div style={{ width: 38, height: 38, background: '#FAEEDA', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 20 }}>📌</div>
+          {/* Unread banner */}
+          {unreadCount > 0 && filter !== 'Unread' && (
+            <div style={{ background: darkMode ? '#1c1a0e' : '#fefce8', border: `1px solid ${darkMode ? '#854d0e' : '#fde68a'}`, borderRadius: 10, padding: '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 18 }}>📌</span>
               <div>
-                <p style={{ fontSize: 10, fontWeight: 500, color: '#633806', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 4 }}>📌 You have {unreadCount} unread notification{unreadCount > 1 ? 's' : ''}</p>
-                <p style={{ fontSize: 13.5, fontWeight: 500, color: '#412402' }}>Mark them as read when you're done!</p>
+                <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: darkMode ? '#fbbf24' : '#92400e' }}>
+                  YOU HAVE {unreadCount} UNREAD NOTIFICATION{unreadCount > 1 ? 'S' : ''}
+                </p>
+                <p style={{ margin: '2px 0 0', fontSize: 12, color: darkMode ? '#fbbf24' : '#92400e' }}>Mark them as read when you're done!</p>
               </div>
             </div>
           )}
 
           {loading ? (
-            <p style={{ textAlign: 'center', color: '#6b7280', padding: '3rem' }}>Loading notifications…</p>
+            <p style={{ textAlign: 'center', color: textSecondary, padding: '3rem' }}>Loading…</p>
           ) : filtered.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '4rem', color: '#6b7280' }}>
+            <div style={{ textAlign: 'center', padding: '3rem', color: textSecondary }}>
               <div style={{ fontSize: 48, marginBottom: 12 }}>🔔</div>
-              <p>No notifications here yet.</p>
+              <p style={{ fontSize: 15, fontWeight: 600, margin: '0 0 6px' }}>No notifications here yet.</p>
+              <p style={{ fontSize: 13 }}>You're all caught up!</p>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {filtered.map(n => {
-                const t = TYPE_MAP[n.type] || TYPE_MAP.info;
+                const tc = TYPE_CONFIG[n.type] || TYPE_CONFIG.info;
                 return (
-                  <div key={n.notificationID || n.id} style={{
-                    background: '#fff', border: `0.5px solid ${n.isRead ? '#e5e7eb' : '#0A6B8E'}`,
-                    borderLeft: `4px solid ${n.isRead ? '#e5e7eb' : '#0A6B8E'}`,
-                    borderRadius: 14, padding: '16px 20px', cursor: 'pointer',
-                    transition: 'border-color .15s, transform .15s',
-                    display: 'flex', gap: 14, alignItems: 'flex-start'
-                  }}
-                    onMouseEnter={e => e.currentTarget.style.transform = 'translateX(3px)'}
-                    onMouseLeave={e => e.currentTarget.style.transform = 'translateX(0)'}
-                  >
-                    <div style={{ width: 40, height: 40, borderRadius: 10, background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>{t.icon}</div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5, flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 12, fontWeight: 500, color: t.color }}>{t.tag}</span>
-                        {!n.isRead && <span style={{ background: '#0A6B8E', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 8 }}>New</span>}
-                        <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 'auto' }}>{fmt(n.sentDate)}</span>
+                  <div key={n.notifID} style={{
+                    background: !n.isRead ? (darkMode ? '#1e2d3d' : '#f0f9fc') : cardBg,
+                    border: `1.5px solid ${!n.isRead ? '#0A6B8E' : cardBorder}`,
+                    borderLeft: `4px solid ${tc.color}`,
+                    borderRadius: 12, padding: '14px 16px',
+                    transition: 'background .3s'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                      <div style={{ width: 36, height: 36, borderRadius: '50%', background: darkMode ? '#0f172a' : tc.bg, border: `1px solid ${tc.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>
+                        {tc.icon}
                       </div>
-                     {n.title && <p style={{ fontSize: 14, fontWeight: 600, color: '#111', marginBottom: 4 }}>{n.title}</p>}
-<p style={{ fontSize: 13.5, color: '#111', lineHeight: 1.6 }}>{n.message}</p>
-                      {!n.isRead && (
-                        <div style={{ marginTop: 10 }}>
-                          <span onClick={() => markRead(n.notifID || n.id)} style={{ fontSize: 12, color: '#0A6B8E', fontWeight: 500, cursor: 'pointer' }}>Mark as read →</span>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: 11, fontWeight: 700, background: darkMode ? '#0f172a' : tc.bg, color: tc.color, padding: '2px 8px', borderRadius: 6 }}>{tc.label}</span>
+                          {!n.isRead && <span style={{ fontSize: 10, fontWeight: 800, background: '#0A6B8E', color: '#fff', padding: '2px 8px', borderRadius: 6 }}>New</span>}
+                          <span style={{ fontSize: 11, color: textSecondary, marginLeft: 'auto' }}>{fmt(n.sentDate)}</span>
                         </div>
-                      )}
+                        {n.title && <p style={{ margin: '0 0 4px', fontSize: 14, fontWeight: 700, color: textPrimary }}>{n.title}</p>}
+                        <p style={{ margin: 0, fontSize: 13.5, color: darkMode ? '#cbd5e1' : '#374151', lineHeight: 1.6 }}>{n.message}</p>
+                        {!n.isRead && (
+                          <span onClick={() => markRead(n.notifID)} style={{ display: 'inline-block', marginTop: 8, fontSize: 12, color: '#0A6B8E', fontWeight: 700, cursor: 'pointer' }}>
+                            Mark as read →
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -119,18 +165,27 @@ export default function Notifications() {
           )}
         </div>
 
-        {/* Sidebar */}
-        <div>
-          <div style={{ background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 14, padding: 16, marginBottom: 14 }}>
-            <p style={{ fontSize: 14, fontWeight: 500, color: '#111', marginBottom: 12 }}>Browse by type</p>
-            {[['All', notifs.length], ['Unread', notifs.filter(n => !n.isRead).length], ['Info', notifs.filter(n => n.type === 'info').length], ['Warning', notifs.filter(n => n.type === 'warning').length], ['Success', notifs.filter(n => n.type === 'success').length], ['Urgent', notifs.filter(n => n.type === 'danger').length]].map(([label, count]) => (
-              <div key={label} onClick={() => setFilter(label.toLowerCase())} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 0', borderBottom: '0.5px solid #f3f4f6', cursor: 'pointer' }}>
-                <span style={{ fontSize: 13, color: '#111' }}>{label}</span>
-                <span style={{ fontSize: 11, color: '#6b7280', background: '#f3f4f6', padding: '2px 8px', borderRadius: 8 }}>{count}</span>
+        {/* RIGHT — sidebar */}
+        {!isMobile && (
+          <div>
+            <div style={{ background: sidebarBg, border: `1px solid ${cardBorder}`, borderRadius: 14, padding: '1.25rem', position: 'sticky', top: 80, transition: 'background .3s' }}>
+              <p style={{ fontSize: 14, fontWeight: 700, color: textPrimary, margin: '0 0 1rem' }}>Browse by type</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {filters.map(f => (
+                  <div key={f} onClick={() => setFilter(f)} style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '8px 12px', borderRadius: 8, cursor: 'pointer',
+                    background: filter === f ? (darkMode ? '#0f172a' : '#EAF6FA') : 'transparent',
+                    transition: '.15s'
+                  }}>
+                    <span style={{ fontSize: 13, fontWeight: filter === f ? 700 : 500, color: filter === f ? '#0A6B8E' : textSecondary }}>{f}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: textSecondary, background: darkMode ? '#334155' : '#f1f5f9', borderRadius: 12, padding: '1px 8px' }}>{typeCounts[f]}</span>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
