@@ -87,7 +87,7 @@ function Navbar() {
       }}>
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0 }}>
           <SEGiLogo />
-          {!isMobile && (
+          {!isMobile && !isTablet && (
             <div>
               <b style={{ color: '#fff', fontSize: 15, fontWeight: 800, display: 'block', letterSpacing: '.2px' }}>SEGi University</b>
               <span style={{ color: 'rgba(255,255,255,.75)', fontSize: 11, fontWeight: 600 }}>Community Hub</span>
@@ -97,21 +97,21 @@ function Navbar() {
 
         {!isMobile && (
           <>
-            <div style={{ width: 1, height: 30, background: 'rgba(255,255,255,.2)', margin: '0 1.5rem', flexShrink: 0 }} />
-            <div style={{ display: 'flex', gap: 2, flex: 1 }}>
+            <div style={{ width: 1, height: 30, background: 'rgba(255,255,255,.2)', margin: isTablet ? '0 0.75rem' : '0 1.5rem', flexShrink: 0 }} />
+            <div style={{ display: 'flex', gap: isTablet ? 0 : 2, flex: 1, minWidth: 0 }}>
               {links.map(({ to, label }) => (
                 <Link key={to} to={to}
                   onMouseEnter={() => setHovered(to)}
                   onMouseLeave={() => setHovered(null)}
                   style={{
                     color: '#fff', textDecoration: 'none',
-                    fontSize: isTablet ? 13 : 14.5,
-                    padding: isTablet ? '7px 10px' : '7px 16px',
+                    fontSize: isTablet ? 11.5 : 14.5,
+                    padding: isTablet ? '6px 7px' : '7px 16px',
                     borderRadius: 6, transition: '.15s',
                     fontWeight: isActive(to) ? 800 : 600,
                     background: isActive(to) ? 'rgba(255,255,255,.22)' : hovered === to ? 'rgba(255,255,255,.12)' : 'transparent',
                     opacity: isActive(to) ? 1 : 0.88,
-                    letterSpacing: '.1px'
+                    whiteSpace: 'nowrap'
                   }}>{label}</Link>
               ))}
               {token && isAdmin && (
@@ -120,30 +120,31 @@ function Navbar() {
                   onMouseLeave={() => setHovered(null)}
                   style={{
                     color: '#fff', textDecoration: 'none',
-                    fontSize: isTablet ? 13 : 14.5,
-                    padding: isTablet ? '7px 10px' : '7px 16px',
+                    fontSize: isTablet ? 11.5 : 14.5,
+                    padding: isTablet ? '6px 7px' : '7px 16px',
                     borderRadius: 6, transition: '.15s',
                     fontWeight: isActive('/admin') ? 800 : 600,
                     background: isActive('/admin') ? 'rgba(255,255,255,.22)' : hovered === 'admin' ? 'rgba(255,255,255,.12)' : 'transparent',
-                    opacity: isActive('/admin') ? 1 : 0.88
-                  }}> Admin</Link>
+                    opacity: isActive('/admin') ? 1 : 0.88,
+                    whiteSpace: 'nowrap'
+                  }}>Admin</Link>
               )}
             </div>
-            <div style={{ display: 'flex', gap: 8, flexShrink: 0, marginLeft: '1rem', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: isTablet ? 5 : 8, flexShrink: 0, marginLeft: isTablet ? '0.5rem' : '1rem', alignItems: 'center' }}>
               <DarkToggle darkMode={darkMode} toggleDark={toggleDark} />
               {token ? (
                 <>
-                  <span style={{ color: '#7dd3f0', fontSize: 14, fontWeight: 700 }}>Hi, {user.name}!</span>
+                  {!isTablet && <span style={{ color: '#7dd3f0', fontSize: 14, fontWeight: 700 }}>Hi, {user.name}!</span>}
                   <button onClick={handleLogout} style={{
                     border: '2px solid rgba(255,255,255,.6)', background: 'transparent',
-                    color: '#fff', padding: '7px 18px', borderRadius: 8,
-                    fontSize: 13, fontWeight: 700, cursor: 'pointer'
+                    color: '#fff', padding: isTablet ? '6px 10px' : '7px 18px', borderRadius: 8,
+                    fontSize: isTablet ? 11.5 : 13, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap'
                   }}>Logout</button>
                 </>
               ) : (
                 <>
-                  <Link to="/login" style={{ border: '2px solid rgba(255,255,255,.6)', background: 'transparent', color: '#fff', padding: '7px 18px', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', textDecoration: 'none' }}>Login</Link>
-                  <Link to="/register" style={{ background: '#fff', color: '#0A6B8E', border: 'none', padding: '7px 18px', borderRadius: 8, fontSize: 13, fontWeight: 800, cursor: 'pointer', textDecoration: 'none' }}>Sign Up</Link>
+                  <Link to="/login" style={{ border: '2px solid rgba(255,255,255,.6)', background: 'transparent', color: '#fff', padding: isTablet ? '6px 10px' : '7px 18px', borderRadius: 8, fontSize: isTablet ? 11.5 : 13, fontWeight: 700, cursor: 'pointer', textDecoration: 'none', whiteSpace: 'nowrap' }}>Login</Link>
+                  <Link to="/register" style={{ background: '#fff', color: '#0A6B8E', border: 'none', padding: isTablet ? '6px 10px' : '7px 18px', borderRadius: 8, fontSize: isTablet ? 11.5 : 13, fontWeight: 800, cursor: 'pointer', textDecoration: 'none', whiteSpace: 'nowrap' }}>Sign Up</Link>
                 </>
               )}
             </div>
@@ -188,7 +189,7 @@ function Navbar() {
               padding: '14px 16px', borderRadius: 10, marginBottom: 4,
               background: isActive('/admin') ? 'rgba(255,255,255,.18)' : 'transparent',
               display: 'block'
-            }}> Admin</Link>
+            }}>Admin</Link>
           )}
           <div style={{ borderTop: '1px solid rgba(255,255,255,.15)', marginTop: 8, paddingTop: 12 }}>
             {token ? (

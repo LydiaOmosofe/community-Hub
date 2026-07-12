@@ -201,11 +201,11 @@ const ClubsTab = () => {
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
-  setLoading(true);
-  try { const r = await API.get('/notifications/all'); setNotifs(Array.isArray(r.data) ? r.data : (r.data?.notifications || [])); }
-  catch { setError('Could not load notifications.'); }
-  finally { setLoading(false); }
-}, []);
+    setLoading(true);
+    try { const r = await API.get('/clubs'); setClubs(Array.isArray(r.data) ? r.data : (r.data?.clubs || [])); }
+    catch { setError('Could not load clubs. Is the backend running?'); }
+    finally { setLoading(false); }
+  }, []);
 
   useEffect(() => { load(); }, [load]);
 
@@ -259,7 +259,7 @@ const ClubsTab = () => {
       ) : (
         <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(240px, 1fr))', gap:16 }}>
           {clubs.map(club => (
-            <div key={club.id} style={{ background:C2.cardBg, borderRadius:12, border:`1px solid ${C2.cardBorder}`, overflow:'hidden', boxShadow: C2.darkMode ? 'none' : '0 1px 4px rgba(0,0,0,0.06)' }}>
+            <div key={club.clubID} style={{ background:C2.cardBg, borderRadius:12, border:`1px solid ${C2.cardBorder}`, overflow:'hidden', boxShadow: C2.darkMode ? 'none' : '0 1px 4px rgba(0,0,0,0.06)' }}>
               <div style={{ position:'relative', height:100 }}>
                 {club.bannerUrl
                   ? <img src={club.bannerUrl} alt="banner" style={{ width:'100%', height:'100%', objectFit:'cover' }} onError={e=>e.target.style.display='none'} />
@@ -403,7 +403,7 @@ const EventsTab = () => {
       ) : (
         <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(240px, 1fr))', gap:16 }}>
           {events.map(ev => (
-            <div key={ev.id} style={{ background:C2.cardBg, borderRadius:12, border:`1px solid ${C2.cardBorder}`, overflow:'hidden', boxShadow: C2.darkMode ? 'none' : '0 1px 4px rgba(0,0,0,0.06)' }}>
+            <div key={ev.eventID} style={{ background:C2.cardBg, borderRadius:12, border:`1px solid ${C2.cardBorder}`, overflow:'hidden', boxShadow: C2.darkMode ? 'none' : '0 1px 4px rgba(0,0,0,0.06)' }}>
               <div style={{ height:140, background:`linear-gradient(135deg, #006978, #1a3c5e)`, position:'relative' }}>
                 {ev.imageUrl && <img src={ev.imageUrl} alt="event" style={{ width:'100%', height:'100%', objectFit:'contain', background: C2.darkMode ? '#0f172a' : '#f1f5f9' }} onError={e=>e.target.style.display='none'} />}
                 <div style={{ position:'absolute', top:10, right:10 }}>
@@ -471,7 +471,7 @@ const NotificationsTab = () => {
 
   const load = useCallback(async () => {
     setLoading(true);
-    try { const r = await API.get('/notifications'); setNotifs(Array.isArray(r.data) ? r.data : (r.data?.notifications || [])); }
+    try { const r = await API.get('/notifications/all'); setNotifs(Array.isArray(r.data) ? r.data : (r.data?.notifications || [])); }
     catch { setError('Could not load notifications.'); }
     finally { setLoading(false); }
   }, []);
@@ -523,7 +523,7 @@ const NotificationsTab = () => {
           {notifs.map(n => {
             const [color,icon] = typeMap[n.type]||['gray','📢'];
             return (
-              <div key={n.id} style={{
+              <div key={n.notifID || n.notificationID || n.id} style={{
                 background: n.isRead ? (C2.darkMode ? '#0f172a' : '#f8fafc') : C2.cardBg,
                 border:`1.5px solid ${n.isRead ? C2.cardBorder : '#0097A7'}`,
                 borderLeft:`4px solid ${n.isRead ? C2.cardBorder : '#0097A7'}`,
