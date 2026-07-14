@@ -10,13 +10,19 @@ const getInitials = (name) => name ? name.split(' ').map(w => w[0]).join('').toU
 const linkify = (text) => {
   if (!text) return null;
   const parts = String(text).split(/(https?:\/\/[^\s]+)/g);
-  return parts.map((part, i) =>
-    /^https?:\/\//.test(part)
-      ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline', wordBreak: 'break-all' }}>{part}</a>
-      : <span key={i}>{part}</span>
-  );
+  return parts.map((part, i) => {
+    if (!/^https?:\/\//.test(part)) return <span key={i}>{part}</span>;
+    const match = part.match(/^(.*?)([.,!?;:]*)$/);
+    const url = match[1];
+    const trailing = match[2];
+    return (
+      <React.Fragment key={i}>
+        <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline', wordBreak: 'break-all' }}>{url}</a>
+        {trailing}
+      </React.Fragment>
+    );
+  });
 };
-
 const QUICK = [
   { label: '📅 Events', text: 'What events are coming up?' },
   { label: '🏛️ Clubs', text: 'Show me all clubs' },
