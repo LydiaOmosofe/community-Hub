@@ -12,7 +12,8 @@ const db = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
+  dateStrings: true // 👈 ADD THIS — returns "2026-09-07 17:00:00" as a raw string, no timezone conversion at all
 });
 
 db.getConnection((err, connection) => {

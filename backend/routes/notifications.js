@@ -27,18 +27,6 @@ router.get('/unread-count', verifyToken, (req, res) => {
   );
 });
 
-// PATCH /api/notifications/:notifID — mark as read
-router.patch('/:notifID', verifyToken, (req, res) => {
-  db.query(
-    'UPDATE notifications SET isRead = 1 WHERE notifID = ? AND userID = ?',
-    [req.params.notifID, req.user.userID],
-    (err) => {
-      if (err) return res.status(500).json({ message: 'Database error' });
-      res.json({ message: 'Marked as read.' });
-    }
-  );
-});
-
 // PATCH /api/notifications/mark-all-read — mark all as read
 router.patch('/mark-all-read', verifyToken, (req, res) => {
   db.query(
@@ -47,6 +35,18 @@ router.patch('/mark-all-read', verifyToken, (req, res) => {
     (err) => {
       if (err) return res.status(500).json({ message: 'Database error' });
       res.json({ message: 'All marked as read.' });
+    }
+  );
+});
+
+// PATCH /api/notifications/:notifID — mark as read
+router.patch('/:notifID', verifyToken, (req, res) => {
+  db.query(
+    'UPDATE notifications SET isRead = 1 WHERE notifID = ? AND userID = ?',
+    [req.params.notifID, req.user.userID],
+    (err) => {
+      if (err) return res.status(500).json({ message: 'Database error' });
+      res.json({ message: 'Marked as read.' });
     }
   );
 });

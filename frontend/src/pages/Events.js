@@ -33,7 +33,6 @@ export default function Events() {
   useEffect(() => {
     getEvents().then(r => {
       const d = Array.isArray(r.data) ? r.data : (r.data?.events || []);
-      console.log('Event categories:', d.map(e => ({ title: e.title, category: e.category, eventDate: e.eventDate })));
       setEvents(d);
     }).catch(() => {}).finally(() => setLoading(false));
   }, []);
@@ -58,8 +57,9 @@ export default function Events() {
     catch { return ''; }
   };
 
-  const upcomingFiltered = upcoming.filter(e => filter === 'All events' || e.category === filter);
-  const pastFiltered = sortedEvents.filter(e => new Date(e.eventDate) <= now).filter(e => filter === 'All events' || e.category === filter);
+  const normalize = (s) => (s || '').trim().toLowerCase();
+  const upcomingFiltered = upcoming.filter(e => filter === 'All events' || normalize(e.category) === normalize(filter));
+  const pastFiltered = sortedEvents.filter(e => new Date(e.eventDate) <= now).filter(e => filter === 'All events' || normalize(e.category) === normalize(filter));
 
   const EventCard = ({ ev, isUpcoming }) => {
     const catStyle = CAT_COLORS[ev.category] || { bg: '#EAF6FA', text: '#084D68' };

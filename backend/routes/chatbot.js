@@ -20,7 +20,9 @@ router.post('/query', verifyToken, async (req, res) => {
   try {
     // Fetch clubs and events from database to give the AI context
     const [clubs] = await db.promise().query('SELECT clubName, category, contactEmail, membershipLink FROM clubs LIMIT 15');
-    const [events] = await db.promise().query('SELECT e.title, e.eventDate, e.venue, c.clubName FROM events e LEFT JOIN clubs c ON e.clubID = c.clubID ORDER BY e.eventDate DESC LIMIT 10');
+  const [events] = await db.promise().query(
+  'SELECT e.title, e.eventDate, e.venue, c.clubName FROM events e LEFT JOIN clubs c ON e.clubID = c.clubID WHERE e.eventDate >= CURDATE() ORDER BY e.eventDate ASC LIMIT 10'
+);
 
     // Build context for the AI
     const clubsContext = clubs.map(c =>
