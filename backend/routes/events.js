@@ -52,20 +52,20 @@ router.get('/club/:clubID', (req, res) => {
 
 // POST /api/events — Protected, clubAdmin or systemAdmin can create events
 router.post('/', verifyToken, requireRole('clubAdmin', 'systemAdmin'), (req, res) => {
-  const { clubID, title, description, eventDate, venue, imageUrl } = req.body;
+  const { clubID, title, description, eventDate, venue, imageUrl, category } = req.body;
 
   if (!title || !eventDate) {
-  return res.status(400).json({ message: 'title and eventDate are required.' });
-}
+    return res.status(400).json({ message: 'title and eventDate are required.' });
+  }
 
   const createdBy = req.user.userID;
 
   const query = `
-    INSERT INTO events (clubID, title, description, eventDate, venue, createdBy, imageUrl)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO events (clubID, title, description, eventDate, venue, createdBy, imageUrl, category)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
-db.query(query, [clubID || null, title, description, eventDate, venue || null, createdBy, imageUrl || null], (err, result) => {
+  db.query(query, [clubID || null, title, description, eventDate, venue || null, createdBy, imageUrl || null, category || null], (err, result) => {
     if (err) return res.status(500).json({ message: 'Error creating event', error: err.message });
     res.status(201).json({
       message: 'Event created successfully!',
@@ -76,7 +76,7 @@ db.query(query, [clubID || null, title, description, eventDate, venue || null, c
 
 // PUT /api/events/:id — Protected, update an event
 router.put('/:id', verifyToken, requireRole('clubAdmin', 'systemAdmin'), (req, res) => {
-  const { title, description, eventDate, venue, imageUrl } = req.body;
+  const { title, description, eventDate, venue, imageUrl, category } = req.body;
 
   db.query('SELECT * FROM events WHERE eventID = ?', [req.params.id], (err, results) => {
     if (err) return res.status(500).json({ message: 'Database error', error: err.message });
@@ -90,7 +90,7 @@ router.put('/:id', verifyToken, requireRole('clubAdmin', 'systemAdmin'), (req, r
 
     const query = `
       UPDATE events
-      SET title = ?, description = ?, eventDate = ?, venue = ?, imageUrl = ?
+      SET title = ?, description = ?, eventDate = ?, venue = ?, imageUrl = ?, category = ?
       WHERE eventID = ?
     `;
 
@@ -102,6 +102,7 @@ router.put('/:id', verifyToken, requireRole('clubAdmin', 'systemAdmin'), (req, r
         eventDate || event.eventDate,
         venue || event.venue,
         imageUrl !== undefined ? imageUrl : event.imageUrl,
+        category || event.category,
         req.params.id
       ],
       (err) => {

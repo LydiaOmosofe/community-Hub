@@ -316,7 +316,7 @@ const ClubsTab = () => {
 
 // ─── EVENTS TAB ────────────────────────────────────────────────────
 
-const defaultEvent = { title:'', description:'', venue:'', eventDate:'', clubID:'', imageUrl:'' };
+const defaultEvent = { title:'', description:'', venue:'', eventDate:'', clubID:'', imageUrl:'', category:'' };
 
 const EventsTab = () => {
   const isMobile = useIsMobile();
@@ -356,7 +356,7 @@ const EventsTab = () => {
   const openCreate = () => { setEditing(null); setForm(defaultEvent); setModal(true); };
   const openEdit = (ev) => {
     setEditing(ev.eventID);
-    setForm({ title:ev.title||'', description:ev.description||'', venue:ev.venue||'', eventDate:ev.eventDate?ev.eventDate.slice(0,16):'', clubID:ev.clubID||'', imageUrl:ev.imageUrl||'' });
+    setForm({ title:ev.title||'', description:ev.description||'', venue:ev.venue||'', eventDate:ev.eventDate?ev.eventDate.slice(0,16):'', clubID:ev.clubID||'', imageUrl:ev.imageUrl||'', category:ev.category||'' });
     setModal(true);
   };
 
@@ -415,6 +415,7 @@ const EventsTab = () => {
                 <p style={{ margin:'4px 0 0', fontSize:12, color:'#0097A7', fontWeight:600 }}>{clubName(ev.clubID)}</p>
                 <p style={{ margin:'6px 0 0', fontSize:12, color:C2.textSecondary }}>📅 {fmt(ev.eventDate)}</p>
                 {ev.venue && <p style={{ margin:'2px 0 0', fontSize:12, color:C2.textSecondary }}>📍 {ev.venue}</p>}
+                {ev.category && <p style={{ margin:'6px 0 0' }}><Badge color="teal">{ev.category}</Badge></p>}
                 <div style={{ display:'flex', gap:8, marginTop:12 }}>
                   <Btn small variant="secondary" onClick={()=>openEdit(ev)}>Edit</Btn>
                   <Btn small variant="danger" onClick={()=>del(ev.eventID)}>Delete</Btn>
@@ -437,6 +438,20 @@ const EventsTab = () => {
             </select>
           </div>
           <Field label="Event Date & Time" type="datetime-local" {...f('eventDate')} required />
+          <div style={{ marginBottom:'1rem' }}>
+            <label style={{ display:'block', fontSize:13, fontWeight:600, marginBottom:5, color:C2.textPrimary }}>Category</label>
+            <select value={form.category} onChange={e=>setForm(p=>({...p,category:e.target.value}))}
+              style={{ width:'100%', padding:'10px 12px', borderRadius:8, border:`1.5px solid ${C2.inputBorder}`, fontSize:14, background: C2.inputBg, color: C2.textPrimary }}>
+              <option value="">— Select category —</option>
+              <option value="Tech">Tech</option>
+              <option value="Sports">Sports</option>
+              <option value="Cultural">Culture</option>
+              <option value="Academic">Academic</option>
+              <option value="Volunteer">Volunteer</option>
+              <option value="Arts">Arts</option>
+              <option value="Hobby">Hobby</option>
+            </select>
+          </div>
           <Field label="Venue" {...f('venue')} placeholder="e.g. SEGI Hall B, Block A" />
           <Field label="Description" type="textarea" {...f('description')} placeholder="What will happen at this event?" />
 

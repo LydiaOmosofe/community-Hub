@@ -90,8 +90,12 @@ export default function Chatbot() {
       const reply = [...newMessages, { role: 'assistant', content: r.data.response, time: new Date().toISOString() }];
       setMessages(reply);
       saveSession(reply);
-    } catch {
-      const err = [...newMessages, { role: 'assistant', content: 'Sorry, something went wrong. Please check your connection and try again.', time: new Date().toISOString() }];
+    } catch (error) {
+      const isSessionExpired = error?.response?.status === 401;
+      const errorText = isSessionExpired
+        ? '⚠️ Your session has expired. Please log out and log back in to keep chatting.'
+        : 'Sorry, something went wrong. Please check your connection and try again.';
+      const err = [...newMessages, { role: 'assistant', content: errorText, time: new Date().toISOString(), sessionExpired: isSessionExpired }];
       setMessages(err);
     } finally { setLoading(false); }
   };
@@ -235,6 +239,14 @@ export default function Chatbot() {
                   fontSize: 14, lineHeight: 1.6, whiteSpace: 'pre-wrap', boxShadow: m.role === 'user' ? 'none' : '0 1px 4px rgba(0,0,0,.06)'
                 }}>
                   {linkify(m.content)}
+                  {m.sessionExpired && (
+                    <button
+                      onClick={() => { localStorage.removeItem('token'); localStorage.removeItem('user'); navigate('/login'); }}
+                      style={{ display: 'block', marginTop: 10, background: '#0A6B8E', color: '#fff', border: 'none', borderRadius: 8, padding: '7px 14px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      Log in again
+                    </button>
+                  )}
                 </div>
                 <p style={{ margin: '4px 6px 0', fontSize: 10, color: textSecondary, textAlign: m.role === 'user' ? 'right' : 'left' }}>{fmt(m.time)}</p>
               </div>
